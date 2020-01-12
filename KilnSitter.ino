@@ -32,8 +32,7 @@
 #define BUTUP A1 // switch 1
 #define BUTDN A2 // switch 2
 #define BUTOK A3 // switch 3
-//#define SDDPIN 4  // SD Card detect (true = detected)
-
+//#define SDDPIN 4  // SD Card detect (true = detected) -- not used
 
 // SPI
 #define CSPIN 10
