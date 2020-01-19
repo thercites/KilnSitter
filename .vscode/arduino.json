@@ -1,0 +1,5 @@
+{
+    "board": "arduino:avr:uno",
+    "sketch": "KilnSitter.ino",
+    "port": "/dev/ttyUSB0"
+}

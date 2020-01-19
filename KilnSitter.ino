@@ -29,9 +29,9 @@
 // output
 #define SSRPIN A0 // solid state relay 
 //input
-#define BUTUP A1 // switch 1
-#define BUTDN A2 // switch 2
-#define BUTOK A3 // switch 3
+#define BUTOK A1 // switch 1
+#define BUTUP A2 // switch 2
+#define BUTDN A3 // switch 3
 //#define SDDPIN 4  // SD Card detect (true = detected) -- not used
 
 // SPI
@@ -53,7 +53,7 @@ char* ksPrograms[] = {"KSPROG01.txt",
                       "KSPROG04.txt",
                       "KSPROG05.txt"
                      };
-uint8_t ksCurrentProgram = 1;
+uint8_t ksCurrentProgram = 0;
 KilnSitterRecord ksProgram[MAX_PROGRAM_STAGES];
 uint8_t programStages = 0;
 uint8_t currentStage = 0;
@@ -63,6 +63,9 @@ int tStageStartTemp = 0;
 
 void setup() {
 
+  //Serial.begin(9600);
+  //while(!Serial){};
+  
   initGpio();
 
   initLcd();
@@ -82,24 +85,26 @@ void setup() {
   lcd.setCursor(5, 0);
   lcd.print("SET PROGRAM");
 
+  showProgram();
+
   // select program
-  uint8_t butPress = 0;
+  int8_t butPress = 0;
   while(butPress != BUTOK){
     butPress = scanButtons();
+    Serial.println(butPress);
     switch(butPress) {
-      case BUTUP: ksCurrentProgram++;
-                  if(ksCurrentProgram >= MAX_PROGS) {
-                    ksCurrentProgram = 0;
+      case BUTUP: if(ksCurrentProgram > 0){
+                    ksCurrentProgram--;
+                    showProgram();
                   }
-                  showProgram();
                   break;
-      case BUTDN: ksCurrentProgram--;
-                  if(ksCurrentProgram < 0) {
-                    ksCurrentProgram = MAX_PROGS -1;
+      case BUTDN: if(ksCurrentProgram < (MAX_PROGS-1)){
+                    ksCurrentProgram++;
+                    showProgram(); 
                   }
-                  showProgram();
                   break;
-    }
+      default: break;
+    }  
   }
 
   // start program
@@ -109,8 +114,8 @@ void setup() {
     KILN_OFF;
   };
 
-  lcd.setCursor(5, 0);
-  lcd.print("*RUNNING!*");
+  lcd.setCursor(0, 0);
+  lcd.print("     *RUNNING!*     ");
 
   // Start timers
   lastTimerTimestamp = millis();
@@ -238,13 +243,13 @@ bool validProgram(void) {
   return (ksProgram[programStages].type == OFF);
 }
 
-uint8_t scanButtons(void){
-  uint8_t button = 0;
-  for (button = BUTUP; button > BUTOK; button++){
+int8_t scanButtons(void){
+  int8_t button = -1;
+  for (button = 15; button < 18; button++){
       if(digitalRead(button) == HIGH) {
-        {
+        do {
           delay(DEBOUNCE_DELAY);
-        } while (digitalRead(button) == HIGH)
+        } while (digitalRead(button) == HIGH); 
         break;
       }
   }
