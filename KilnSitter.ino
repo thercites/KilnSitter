@@ -47,11 +47,11 @@ LiquidCrystal_I2C lcd(0x27, 20, 4); // set the LCD address to 0x27 for a 16 char
 Adafruit_MCP9600 mcp;
 
 // Kiln Program
-char* ksPrograms[] = {"KSPROG01.txt",
-                      "KSPROG02.txt",
-                      "KSPROG03.txt",
-                      "KSPROG04.txt",
-                      "KSPROG05.txt"
+char* ksPrograms[] = {"PAINT-01.txt",
+                      "PAINT-02.txt",
+                      "STAIN-01.txt",
+                      "STAIN-02.txt",
+                      "xMANUALx.txt"
                      };
 uint8_t ksCurrentProgram = 0;
 KilnSitterRecord ksProgram[MAX_PROGRAM_STAGES];
@@ -63,20 +63,9 @@ int tStageStartTemp = 0;
 
 void setup() {
 
-  //Serial.begin(9600);
-  //while(!Serial){};
-  
   initGpio();
 
   initLcd();
-
-  if (!initProgram()) {
-    exception("Prog Load");
-  }
-
-  if (!validProgram()) {
-    exception("Prog Invalid");
-  }
 
   if (!initThermo()) {
     exception("Thermo");
@@ -107,6 +96,16 @@ void setup() {
     }  
   }
 
+  // Read program stages from SD card
+  if (!initProgram()) {
+    exception("Prog Load");
+  }
+
+  // Validate program stages
+  if (!validProgram()) {
+    exception("Prog Invalid");
+  }
+
   // start program
   lcd.setCursor(2, 0);
   lcd.print("START ** PROGRAM");
@@ -115,7 +114,7 @@ void setup() {
   };
 
   lcd.setCursor(0, 0);
-  lcd.print("     *RUNNING!*     ");
+  lcd.print("     *RUNNING*     ");
 
   // Start timers
   lastTimerTimestamp = millis();
@@ -133,8 +132,8 @@ void loop() {
       }
     }
     else if(button == BUTDN) {
-      if(ksProgram[currentStage].targetTemp > 10){
-        ksProgram[currentStage].targetTemp -= 10;
+      if(ksProgram[currentStage].targetTemp > 5){
+        ksProgram[currentStage].targetTemp -= 5;
       }
     }
   }
@@ -236,11 +235,11 @@ bool readProgram(void) {
   programFile.close();
   programStages = progStageIndex - 1;
   currentStage = 0;
-  return true;;
+  return true;
 }
 
 bool validProgram(void) {
-  return (ksProgram[programStages].type == OFF);
+  return (ksProgram[programStages].type == OFF || ksProgram[programStages].type == MANUAL);
 }
 
 int8_t scanButtons(void){
